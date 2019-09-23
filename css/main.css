@@ -1,0 +1,29 @@
+
+body {
+    font-family: Montserrat;
+    font-weight: 400;
+}
+        
+body nav #logo-container{
+    font-family: Montserrat;
+    font-weight: 600;        
+    font-size: 20px;
+}
+
+nav {
+    background: #050951;
+}
+
+nav ul li a {
+    color: #FACE2E;
+}
+
+.setcardcontent {
+    background: #050951;
+    color: #ffffff;
+}
+
+.setcardcontent:hover {
+    background: #FACE2E;
+    color: black;
+}
