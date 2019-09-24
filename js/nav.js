@@ -36,17 +36,27 @@ document.addEventListener("DOMContentLoaded", function () {
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4) {
                 var domPage = document.querySelector("#body-content");
-                if (this.status == 200)
+                if (this.status == 200) {
+                    if (page == "home") {
+                        getStandings();
+                    } else if (page == "teams") {
+                        getTeams();
+                    }
                     domPage.innerHTML = xhttp.responseText;
+                    if (page == "home") {
+                        document.getElementById("moveTeams").addEventListener("click", function (elmss) {
+                            loadPage("teams");
+                        });
+                    }
+                }
                 else if (this.status == 404)
                     domPage.innerHTML = "Uppss.. Halaman tidak dapat ditemukan..";
                 else
                     domPage.innerHTML = "Maaf.. Halaman tidak dapat diakses..";
-
-
             }
         }
         xhttp.open("GET", "pages/" + page + ".html", true);
         xhttp.send();
     }
 });
+

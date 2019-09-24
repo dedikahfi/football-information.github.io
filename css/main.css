@@ -27,3 +27,15 @@ nav ul li a {
     background: #FACE2E;
     color: black;
 }
+
+.setcardlogoteam {
+    background: #ffffff;
+    color: #000000;
+}
+
+.setcardlogoteam:hover {
+    background: #050951;
+    color: #ffffff;
+}
+
+
