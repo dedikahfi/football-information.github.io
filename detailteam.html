@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="EN">
+
 <head>
     <title>Football</title>
     <meta name="description" content="Football Information">
@@ -11,6 +12,7 @@
     <link rel="stylesheet" href="css/main.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
+
 <body>
     <nav class="lighten-1" role="navigation">
         <div class="container nav-wrapper ">
@@ -24,13 +26,52 @@
         </div>
     </nav>
 
-    <div id="body-content"></div>
+    <div id="body-content container">
+        <a id="fabsave" style="float:right; margin-top:25px; right:5%" class="btn-floating btn-large cyan pulse"><i
+                class="material-icons">add</i></a>
+        <a id="fabdelete" style="float:right; margin-top:25px; right:5%" class="btn-floating btn-large red pulse"><i
+                class="material-icons">delete</i></a>
+        <div id="body-detail">
+        </div>
+    </div>
+
 
     <script src="js/materialize.min.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/idb.js"></script>
+    <script src="js/db.js"></script>
     <script>
-        var idPage = new URLSearchParams(window.location.search);
-        getTeamById(idPage.get("id"));
+        document.addEventListener("DOMContentLoaded", function () {
+            var idPage = new URLSearchParams(window.location.search);
+            var fabsave = document.querySelector("#fabsave");
+            var fabdelete = document.querySelector("#fabdelete");
+            var isSaved = idPage.get("saved");
+
+            if (isSaved) {
+                getShowFavoritesById(idPage.get("id"));
+                fabsave.style.display = 'none';
+                fabdelete.style.display = 'block';
+            } else {
+                getTeamById(idPage.get("id"));
+                fabdelete.style.display = 'none';
+                fabsave.style.display = 'block';
+            }
+
+            var item = getTeamById(idPage.get("id"));
+            fabsave.addEventListener("click", function () {
+                item.then(function (team) {
+                    saveInformationTeam(team);
+                    window.alert("Data telah tersimpan dilaman favorite.")
+                })
+            })
+
+            fabdelete.addEventListener("click", function(){
+                deleteFav(parseInt(idPage.get("id")));
+                location.replace("/#favorites");
+            })
+        });
+
     </script>
 </body>
+
 </html>

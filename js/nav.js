@@ -37,11 +37,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if (this.readyState == 4) {
                 var domPage = document.querySelector("#body-content");
                 if (this.status == 200) {
-                    if (page == "home") {
+                    if (page == "home")
                         getStandings();
-                    } else if (page == "teams") {
+                    else if (page == "teams")
                         getTeams();
-                    }
+                    else if (page == "favorites")
+                        getShowFavorites();
                     domPage.innerHTML = xhttp.responseText;
                     if (page == "home") {
                         document.getElementById("moveTeams").addEventListener("click", function (elmss) {

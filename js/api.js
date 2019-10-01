@@ -43,7 +43,7 @@ function getTeams() {
         caches.match(baseUrl + "v2/competitions/2001/teams").then(function (response) {
             if (response) {
                 response.json().then(function (data) {
-                    toParsingTeams(data)
+                    toParsingTeams(data);
                 })
             }
         })
@@ -60,23 +60,38 @@ function getTeams() {
 }
 
 function getTeamById(id) {
-    if ("caches" in window) {
-        caches.match(baseUrl + "v2/competitions/2001/teams").then(function (response) {
-            if (response) {
-                response.json().then(function (data) {
-                    toParsingDetail(data, id);
-                })
-            }
-        })
-    }
+    return new Promise(function (resolve, reject) {
+        if ("caches" in window) {
+            caches.match(baseUrl + "v2/competitions/2001/teams").then(function (response) {
+                if (response) {
+                    response.json().then(function (data) {
+                        data.teams.forEach(function (dataTeams) {
+                            if (dataTeams.id != id)
+                                return;
 
-    fetch(baseUrl + "v2/competitions/2001/teams", {
-        headers: {
-            'X-Auth-Token': '' + apikey
+                            toParsingDetail(dataTeams, id);
+                            resolve(dataTeams);
+                            return dataTeams;
+                        })
+                    })
+                }
+            })
         }
-    }).then(status).then(json).then(function (data) {
-            toParsingDetail(data, id);
+        fetch(baseUrl + "v2/competitions/2001/teams", {
+            headers: {
+                'X-Auth-Token': '' + apikey
+            }
+        }).then(status).then(json).then(function (data) {
+            data.teams.forEach(function (dataTeams) {
+                if (dataTeams.id != id)
+                    return;
+
+                toParsingDetail(dataTeams, id);
+                resolve(dataTeams);
+                return dataTeams;
+            })
         }).catch(error);
+    });
 }
 
 function toParsingStandings(data) {
@@ -86,6 +101,8 @@ function toParsingStandings(data) {
         else {
             var dataTeam = "";
             fetchData.table.forEach(function (fetchTable) {
+                if (fetchTable.team.name === "Lille OSC")
+                    return; //resource image bad
                 var url = fetchTable.team.crestUrl;
                 if (url.match('^http://')) {
                     url = url.replace("http://", "https://")
@@ -111,9 +128,9 @@ function toParsingStandings(data) {
             <div class="card darken-1 setcardcontent">
             <div class="card-content">
                 <span class="card-title">${fetchData.group}</span><hr>
-                <table><tr>
-                    <th width=100px>Logo</th>
-                    <th width=400px>Team</th>
+                <table width="100%"><tr>
+                    <th width=5%>Logo</th>
+                    <th>Team</th>
                     <th>Won</th>
                     <th>Lost</th>
                     <th>Draw</th>
@@ -129,7 +146,6 @@ function toParsingStandings(data) {
 function toParsingTeams(data) {
     var elemHTML = "";
     data.teams.forEach(function (dataTeams) {
-
         var url = dataTeams.crestUrl;
         if (url == null || url == "" || dataTeams.name == "APOEL FC" || dataTeams.name == "NK Maribor" || dataTeams.name == "Lille OSC")
             return;
@@ -139,7 +155,7 @@ function toParsingTeams(data) {
             url = url.replace("http://", "https://")
         }
 
-        elemHTML +=`
+        elemHTML += `
         <div class="col s12 m4">
         <div class="card darken-1">
             <a href="/detailteam.html?id=${dataTeams.id}">
@@ -154,24 +170,21 @@ function toParsingTeams(data) {
     document.querySelector("#teamcontent").innerHTML = elemHTML;
 }
 
-function toParsingDetail(data, id) {
+function toParsingDetail(dataTeams) {
     var elemHTML = "";
-    data.teams.forEach(function (dataTeams) {
-        if (dataTeams.id != id)
-            return;
 
-        var url = dataTeams.crestUrl;
-        if (url == null || url == "")
-            return;
+    var url = dataTeams.crestUrl;
 
-        if (url.match('^http://')) {
-            url = url.replace("http://", "https://")
-        }
+    if (url == null || url == "")
+        return;
 
-        elemHTML += `
+    if (url.match('^http://')) {
+        url = url.replace("http://", "https://")
+    }
+
+    elemHTML += `
                 <div class="container">
                 <div class="col s12 m12">
-                    <a style="float:right; margin-top:15px; right:3%;" class="btn-floating btn-large cyan pulse"><i class="material-icons">add</i></a>
                     <div class="card darken-1">
                     <div class="card-content">
                         <img style="float:left; margin-right:20px; height: 50px; width: 50px;" src='${url}' alt='' class='circle responsive-img'/>    
@@ -191,6 +204,72 @@ function toParsingDetail(data, id) {
                 </div>
                 </div>
                 `
-    })
-    document.querySelector("#body-content").innerHTML = elemHTML;
+    document.querySelector("#body-detail").innerHTML = elemHTML;
 }
+
+function getShowFavorites() {
+    getAll().then(function (data) {
+        console.log(data);
+        var elemHTML = "";
+        data.forEach(function (dataTeams) {
+
+            var url = dataTeams.crestUrl;
+            if (url == null || url == "" || dataTeams.name == "APOEL FC" || dataTeams.name == "NK Maribor" || dataTeams.name == "Lille OSC")
+                return;
+            //APOEL FC and NK Maribor and Lille OSC image broken becouse not finding resource image.
+
+            if (url.match('^http://')) {
+                url = url.replace("http://", "https://")
+            }
+
+            elemHTML += `
+            <div class="col s12 m4">
+            <div class="card darken-1">
+                <a href="/detailteam.html?id=${dataTeams.id}&saved=true">
+                <div class="card-content setcardlogoteam" style="text-align:center;height:300px;">
+                    <img style="height: 150px; width: 150px;" src='${url}' alt='' class='circle responsive-img'/>
+                    <hr><span class="card-title">${dataTeams.name}</span>
+                </div>
+                </a>
+            </div>
+            </div>`
+        })
+        document.querySelector("#favoritescontent").innerHTML = elemHTML;
+    })
+}
+
+function getShowFavoritesById(id) {
+    getById(id).then(function (dataTeams) {
+        var elemHTML = "";
+        var url = dataTeams.crestUrl;
+        if (url == null || url == "")
+            return;
+        if (url.match('^http://')) {
+            url = url.replace("http://", "https://")
+        }
+        elemHTML += `
+                <div class="container">
+                <div class="col s12 m12">
+                    <div class="card darken-1">
+                    <div class="card-content">
+                        <img style="float:left; margin-right:20px; height: 50px; width: 50px;" src='${url}' alt='' class='circle responsive-img'/>    
+                        <span class="card-title" style="font-weight:600;margin-bottom:20px; margin-top:10px;">${dataTeams.name}</span>
+                        <hr><table><tr>
+                                <td>Short Name</td><td>:</td><td>${dataTeams.shortName}</td></tr><tr>
+                                <td>Address</td><td>:</td><td>${dataTeams.address}</td></tr><tr>
+                                <td>Club Colors</td><td>:</td><td>${dataTeams.clubColors}</td></tr><tr>
+                                <td>Founded</td><td>:</td><td>${dataTeams.founded}</td></tr><tr>
+                                <td>Venue</td><td>:</td><td>${dataTeams.venue}</td></tr><tr>
+                                <td>Email</td><td>:</td><td>${dataTeams.email}</td></tr><tr>
+                                <td>Phone</td><td>:</td><td>${dataTeams.phone}</td></tr><tr>
+                                <td>Website</td><td>:</td><td>${dataTeams.website}</td>
+                        </tr></table>
+                    </div>
+                    </div>
+                </div>
+                </div>
+                `
+        document.querySelector("#body-detail").innerHTML = elemHTML;
+    })
+}
+
